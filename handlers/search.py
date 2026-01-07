@@ -7,7 +7,10 @@ from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
 from ui.states import SearchStates
 from ui.keyboards import trip_type_keyboard
-from services.travelpayouts import search_round_trip_fixed_stay, search_flights_for_dates, search_flights_for_dates  # оставляем импорт, если нужен
+from services.travelpayouts import (
+    search_round_trip_fixed_stay,
+    search_flights_for_dates,
+)
 
 router = Router()
 
@@ -53,7 +56,7 @@ async def choose_round_trip(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
     calendar = SimpleCalendar()
-    # IMPORTANT: start_calendar is async in this version -> await it
+    # start_calendar — асинхронный метод в этой версии, поэтому await
     calendar_markup = await calendar.start_calendar()
     await callback.message.answer(
         "Выберите дату вылёта:",
@@ -73,7 +76,6 @@ async def set_depart_date(
     state: FSMContext,
 ):
     calendar = SimpleCalendar()
-    # process_selection is async -> await
     selected, depart_date = await calendar.process_selection(callback, callback_data)
 
     if not selected:
@@ -81,7 +83,6 @@ async def set_depart_date(
 
     await state.update_data(depart_date=depart_date)
 
-    # снова await start_calendar()
     calendar_markup = await calendar.start_calendar()
     await callback.message.answer(
         "Выберите дату возвращения:",
