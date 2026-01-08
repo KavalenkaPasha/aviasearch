@@ -7,6 +7,30 @@ from config import TRAVELPAYOUTS_TOKEN
 
 API_URL = "https://api.travelpayouts.com/aviasales/v3/prices_for_dates"
 
+# === СЛОВАРЬ АВИАКОМПАНИЙ ===
+AIRLINE_NAMES = {
+    "SU": "Аэрофлот",
+    "DP": "Победа",
+    "S7": "S7 Airlines",
+    "U6": "Уральские авиалинии",
+    "UT": "Utair",
+    "WZ": "Red Wings",
+    "IO": "IrAero",
+    "A4": "Azimuth",
+    "TK": "Turkish Airlines",
+    "EK": "Emirates",
+    "FZ": "Flydubai",
+    "QR": "Qatar Airways",
+    "B2": "Belavia",
+    "HY": "Uzbekistan Airways",
+    "KC": "Air Astana",
+    "DV": "SCAT",
+    "J2": "AZAL",
+}
+
+def get_airline_name(iata_code: str) -> str:
+    """Возвращает название авиакомпании или код, если названия нет в базе."""
+    return AIRLINE_NAMES.get(iata_code, iata_code)
 
 def _to_date(d: Union[date, datetime, str]) -> date:
     if isinstance(d, datetime):
@@ -14,7 +38,6 @@ def _to_date(d: Union[date, datetime, str]) -> date:
     if isinstance(d, date):
         return d
     return datetime.strptime(d, "%Y-%m-%d").date()
-
 
 async def _fetch(
     session: aiohttp.ClientSession,
@@ -39,7 +62,6 @@ async def _fetch(
         data = await r.json()
         return data.get("data", [])
 
-
 async def search_flights_for_dates(
     origin: str,
     destination: str,
@@ -52,9 +74,17 @@ async def search_flights_for_dates(
             res = await _fetch(session, origin, destination, d, limit_per_day)
             results.extend(res)
 
-    results.sort(key=lambda x: float(x.get("price", 1e12)))
-    return results
+    # 🔥 ВАЖНОЕ ИСПРАВЛЕНИЕ: Фильтруем билеты с ценой <= 0 или без цены
+    # services/travelpayouts.py
+    valid_results = [
+        r for r in results 
+        if r.get("price") is not None and float(r["price"]) > 0
+    ]
+    
+# ...
 
+    valid_results.sort(key=lambda x: float(x.get("price", 1e12)))
+    return valid_results
 
 async def search_round_trip_fixed_stay(
     origin: str,
