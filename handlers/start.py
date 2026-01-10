@@ -1,16 +1,29 @@
+# handlers/start.py
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 
-from ui.keyboards import main_menu
+from ui.keyboards import start_inline_menu
 
 router = Router()
 
 @router.message(Command("start"))
-async def start_handler(message: Message):
+async def start_handler(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer(
-        "✈️ Добро пожаловать!\n\n"
+        "✈️ <b>Добро пожаловать!</b>\n\n"
         "Я помогу найти самые дешёвые авиабилеты.\n"
-        "Выбери действие ⬇️",
-        reply_markup=main_menu()
+        "Выберите действие ниже:",
+        reply_markup=start_inline_menu(),
+        parse_mode="HTML"
     )
+
+@router.callback_query(lambda c: c.data == "go_home")
+async def go_home_callback(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer(
+        "🏠 Главное меню:",
+        reply_markup=start_inline_menu()
+    )
+    await callback.answer()

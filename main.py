@@ -10,7 +10,7 @@ from handlers.search import router as search_router
 from handlers.subscription import router as sub_router
 from services.scheduler import check_subscriptions_task
 from database import init_db, get_subscriptions_count
-from ui.keyboards import main_menu
+from ui.keyboards import start_inline_menu
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +30,8 @@ async def on_startup(bot: Bot):
                     f"📊 Активных подписок: {count}\n"
                     f"Навигация активирована 👇"
                 ),
-                reply_markup=main_menu(),
+                # ИСПРАВЛЕНО: используется существующая функция меню
+                reply_markup=start_inline_menu(),
                 parse_mode="HTML"
             )
             logger.info(f"Startup message sent to admin {ADMIN_ID}")
